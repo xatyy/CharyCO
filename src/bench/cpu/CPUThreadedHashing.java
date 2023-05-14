@@ -3,6 +3,9 @@ package bench.cpu;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 
 import bench.IBenchmark;
 
@@ -55,6 +58,58 @@ public class CPUThreadedHashing implements IBenchmark {
 			// get next string (new task) OR NULL if final combination "zzz..z" reached
 			text = hasher.getNextString(text);
 
+			// stop search condition#1
+			if (length > maxTextLength) {
+				running = false;
+			}
+
+			// reset string to "aaa...a" with length+1
+			if (text == null) {
+				length++;
+				text = "aa";
+				for (int i = 2; i < length; ++i)
+					text += "a";
+			}
+		}
+
+		// stop executor
+		executor.shutdown();
+		while (!executor.isTerminated()) {
+		}
+
+	}
+
+
+	public void run_file(Object... options) throws IOException {
+
+		// maximum text length
+		int maxTextLength = (Integer)options[0];
+		// thread pool size
+		int nThreads = (Integer)options[1];
+		// hash code
+		int hashCode = (Integer)options[2];
+
+		// try to break these hash codes (in ascending order of difficulty):
+		// 524381996
+		// 52703576
+		// 605107138
+
+		int length = 2;
+
+		ExecutorService executor = Executors.newFixedThreadPool(nThreads);
+		HashManager hasher = new HashManager();
+		String text = "a";
+		int wordIndex = 0;
+
+		while (running) {
+			//System.out.println(wordIndex);
+			HashBreakerTask worker = new HashBreakerTask(hasher, text, hashCode);
+			// assign new runnable to executor
+			executor.execute(worker);
+			// get next string (new task) OR NULL if final combination "zzz..z" reached
+			text = hasher.getWordsAtIndex(wordIndex);
+			wordIndex++;
+			//System.out.println(text);
 			// stop search condition#1
 			if (length > maxTextLength) {
 				running = false;
@@ -155,32 +210,66 @@ public class CPUThreadedHashing implements IBenchmark {
 		 *         - Null: if there is no further combination after given text, e.g.,
 		 *         "zz...zzz"
 		 */
+
+
+
+
+
+			public String getWordsAtIndex(int index) throws IOException {
+
+				BufferedReader reader = new BufferedReader(new FileReader("wordss.txt"));
+				String line;
+				int lineNumber = 0;
+
+				while ((line = reader.readLine()) != null) {
+					if (lineNumber == index) {
+						reader.close();
+						return line;
+					}
+					lineNumber++;
+				}
+
+				reader.close();
+				return null;
+			}
+
+
+
 		public String getNextString(String text) {
+			String charSet = "abcdefghijklmnopqrstuvwxyz";
 			int[] index = new int[text.length()];
 			int end = charSet.length() - 1;
-			//char[] stringArray = text.toCharArray();
 
 			for (int i = 0; i < text.length(); i++) {
-				index[i] = charSet.indexOf(text.charAt(i));
+				char c = text.charAt(i);
+				index[i] = charSet.indexOf(c);
 			}
 
-			int i = index.length - 1;
-			index[i]++;
-			while (index[i] > end) {
-				index[i] = 0;
-				i--;
-				if (i < 0) {
-					return null; // complete overflow ("zzz..zz") return null
+			int carry = 1;
+			for (int i = index.length - 1; i >= 0; i--) {
+				index[i] += carry;
+				carry = 0;
+				if (index[i] > end) {
+					index[i] = 0;
+					carry = 1;
+				} else {
+					break;
 				}
-				index[i]++;
 			}
 
-			// convert back to string
-			char[] stringArray = new char[index.length];
-			for (i = 0; i < index.length; i++) {
-				stringArray[i] = charSet.charAt(index[i]);
+			if (carry == 1) {
+				return null;
 			}
-			return new String(stringArray);
+
+			String result = "";
+			for (int i = 0; i < index.length; i++) {
+				result += charSet.charAt(index[i]);
+			}
+
+			return result.toString();
+		}
+
+
 
 
 
@@ -197,7 +286,7 @@ public class CPUThreadedHashing implements IBenchmark {
 			// [0,2,0] = aca
 
 			//return result;
-		}
+
 
 		// can be used as an alternative to getNextString, but it will be infinitely slower to break longer hashes
 		public String getRandomString(int length) {
