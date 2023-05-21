@@ -13,7 +13,7 @@ import timing.Timer;
 
 public class FileWriter {
 
-	private static final int MIN_BUFFER_SIZE = 1024 * 1; // KB
+	private static final int MIN_BUFFER_SIZE = 1024 * 1024 * 1; // KB
 	private static final int MAX_BUFFER_SIZE = 1024 * 1024 * 64; // MB
 	private static final long MIN_FILE_SIZE = 1024 * 1024 * 1; // MB
 	private static final long MAX_FILE_SIZE = 1024 * 1024 * 1024; // MB
@@ -82,7 +82,8 @@ public class FileWriter {
 		System.out.println("Stream write benchmark with fixed buffer size");
 		long currentFileSize = MIN_FILE_SIZE;
 		int fileIndex = 0;
-		
+		benchScore = 0;
+
 		while (currentFileSize <= MAX_FILE_SIZE
 				&& fileIndex <= maxIndex - minIndex) {
 			String fileName;
@@ -91,6 +92,7 @@ public class FileWriter {
 			currentFileSize *= 10;
 			fileIndex++;
 		}
+
 
 		benchScore /= (maxIndex - minIndex + 1);
 		//String partition = filePrefix.substring(0, filePrefix.indexOf(":\\"));
@@ -140,7 +142,7 @@ public class FileWriter {
 		
 		NumberFormat nf = new DecimalFormat("#.00");
 		double seconds = TimeUnit.toTimeUnit(time, TimeUnit.Sec); // calculated from timer's 'time'
-		double megabytes = totalBytes / (1024*1024); //
+		double megabytes = totalBytes / (1048576.0); //
 		double rate = megabytes/seconds; // calculated from the previous two variables
 		System.out.println("Done writing " + totalBytes + " bytes to file: "
 				+ fileName + " in " + nf.format(seconds) + " s ("

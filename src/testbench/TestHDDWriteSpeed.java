@@ -6,6 +6,9 @@ import bench.hdd.HDDWriteSpeed;
 public class TestHDDWriteSpeed {
     public static void main(String[] args){
         IBenchmark bench = new HDDWriteSpeed();
-        bench.run("fs", true);
+        for(int i = 0; i < 5; i++){
+            bench.run("fb", true);
+        }
+
     }
 }

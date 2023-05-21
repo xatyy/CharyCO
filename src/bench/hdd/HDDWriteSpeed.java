@@ -30,8 +30,8 @@ public class HDDWriteSpeed implements IBenchmark {
 
 		String prefix = "/Users/chary/Documents/000-bench/"; //edit here
 		String suffix = ".dat";
-		int minIndex = 0;
-		int maxIndex = 8; //10
+		int minIndex = 1;
+		int maxIndex = 1; //10
 		long fileSize = 512 * 1024 * 1024; // 256, this --> 512 MB, 1GB // type Long!
 		int bufferSize = 2 * 1024; // 4 KB
 		
