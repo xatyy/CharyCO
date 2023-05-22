@@ -11,8 +11,8 @@ public class TestHDDRandomAccess {
         IBenchmark bench = new HDDRandomAccess();
         ILogger log = new ConsoleLogger();
 
-        bench.initialize((long)1024 * 1024 * 1024 );
-        bench.run("r", "ft", 1*1024);
+        bench.initialize((long)1024 * 1024 * 1024 * 3 );
+        bench.run("r", "ft", 1024 * 1024);
         log.write(bench.getResult());
     }
 

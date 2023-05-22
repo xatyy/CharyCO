@@ -14,7 +14,8 @@ import bench.IBenchmark;
 
 public class HDDRandomAccess implements IBenchmark {
 
-	private final static String PATH = "/Users/chary/Documents/test.raf";
+	private final static String PATH = "E://test.raf";
+	private final static String PATH_OSX = "/Users/chary/Documents/test.raf";
 	private String result;
 
 	@Override
@@ -98,7 +99,26 @@ public class HDDRandomAccess implements IBenchmark {
 			}
 			// write benchmark
 			else if (String.valueOf(param[0]).toLowerCase().equals("w")) {
-				// your code here: implement all cases for param[[0]: fs, ft, other
+				int bufferSize = Integer.parseInt(String.valueOf(param[2]));
+				// write a fixed size and measure time
+				if (String.valueOf(param[1]).toLowerCase().equals("fs")) {
+
+					long timeMs = new RandomAccess().randomWriteFixedSize(PATH,
+							bufferSize, steps);
+					result = steps + " random writes in " + timeMs + " ms ["
+							+ (steps * bufferSize / 1024 / 1024) + " MB, "
+							+ 1.0 * (steps * bufferSize / 1024 / 1024) / timeMs * 1000 + "MB/s]";
+				}
+				// write a fixed time amount and measure time
+				else if (String.valueOf(param[1]).toLowerCase().equals("ft")) {
+
+
+					int ios = new RandomAccess().randomWriteFixedTime(PATH,
+							bufferSize, runtime);
+					result = ios + " I/Os per second ["
+							+ (ios * bufferSize / 1024 / 1024) + " MB, "
+							+ 1.0 * (ios * bufferSize / 1024 / 1024) / runtime * 1000 + "MB/s]";
+				}
 			} else
 				throw new UnsupportedOperationException("Benchmark option \""
 						+ String.valueOf(param[0]) + "\" is not implemented");
@@ -212,6 +232,57 @@ public class HDDRandomAccess implements IBenchmark {
 			file.close();
 			return counter;
 		}
+
+		public int randomWriteFixedTime(String filePath, int bufferSize,
+										int millis) throws IOException {
+			// file to write to
+			RandomAccessFile file = new RandomAccessFile(filePath, "rw");
+			// size of file
+			int fileSize = (int) (file.getChannel().size() % Integer.MAX_VALUE);
+			// counter for number of writes
+			int counter = 0;
+			// buffer for writing
+			byte[] bytes = new byte[bufferSize];
+
+			long now = System.nanoTime();
+			// write for a fixed amount of time
+			while ((System.nanoTime() - now) < (millis * 1000000)) {
+				// go to random spot in file
+				file.seek(random.nextInt(fileSize));
+				// read the bytes into buffer
+				file.write(bytes);
+				counter++;
+			}
+			file.close();
+
+			return counter;
+		}
+
+		public long randomWriteFixedSize(String filePath, int bufferSize,
+										 int toRead)  throws IOException {
+			// file to write from
+			RandomAccessFile file = new RandomAccessFile(filePath, "rw");
+			// size of file
+			int fileSize = (int) (file.getChannel().size() % Integer.MAX_VALUE);
+			// counter for number of writes
+			int counter = 0;
+			// buffer for writing
+			byte[] bytes = new byte[bufferSize];
+			// timer
+			Timer timer = new Timer();
+
+			timer.start();
+			while (counter++ < toRead) {
+				// go to random spot in file
+				file.seek(random.nextInt(fileSize));
+				// write the bytes into buffer
+				file.write(bytes);
+			}
+
+			file.close();
+			return timer.stop() / 1000000; // ms
+		}
+
 
 		/**
 		 * Read data from a file at a specific position
