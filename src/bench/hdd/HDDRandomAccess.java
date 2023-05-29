@@ -14,8 +14,8 @@ import bench.IBenchmark;
 
 public class HDDRandomAccess implements IBenchmark {
 
-	private final static String PATH = "E://test.raf";
-	private final static String PATH_OSX = "/Users/chary/Documents/test.raf";
+	private final static String PATH_WINDOWS = "E://test.raf";
+	private final static String PATH = "/Users/chary/Documents/test.raf";
 	private String result;
 
 	@Override
